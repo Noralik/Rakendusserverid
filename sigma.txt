@@ -1,0 +1,11 @@
+Наша команда Называется “SIGMA Ʃ” в нашей команде участвует самые опытные работники такие как:
+Jaramir Gutsuljak	= CEO “juht”
+https://github.com/noralik
+Ilja Gerskevits 	= Arhitect
+https://github.com/MarshLean
+Aleksandr Põšnõi	= DB-Admin
+https://github.com/Stizzzly
+Aleksander Koltsin 	= DB-Admin
+https://github.com/sass207
+
+Мы разрабатываем порт для веб-браузер такой игры как "SkyHill"
