@@ -1,0 +1,31 @@
+server {
+    # Слушаем 80 порт
+    listen 80;
+    listen [::]:80;
+
+    # Имя сервера (можно IP или домен)
+    server_name localhost;
+
+    # Корневая папка сайта
+    root /home/sigmaadmin/Rakendusserverid/;
+    index index.html;
+
+    # Логи (для отладки)
+    access_log /var/log/nginx/game-access.log;
+    error_log /var/log/nginx/game-error.log;
+
+    # Основное правило
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Кэширование статических файлов
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Сжатие
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml text/javascript;
+}

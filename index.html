@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGMAHILL - Survival Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Фоновые частицы -->
+    <div class="particles"></div>
+
+    <!-- Главный контейнер -->
+    <div class="main-container">
+
+        <!-- Логотип игры -->
+        <div class="logo">
+            <h1 class="glitch" data-text="SKYHILL">SIGMAHILL</h1>
+            <p class="subtitle">SURVIVAL HORROR</p>
+        </div>
+
+        <!-- Главное меню -->
+        <div class="menu" id="mainMenu">
+            <button class="menu-btn" id="playBtn">
+                <span class="btn-icon">▶</span>
+                <span class="btn-text">ИГРАТЬ</span>
+            </button>
+
+            <button class="menu-btn" id="loginBtn">
+                <span class="btn-icon">👤</span>
+                <span class="btn-text">ВОЙТИ</span>
+            </button>
+
+            <button class="menu-btn" id="settingsBtn">
+                <span class="btn-icon">⚙</span>
+                <span class="btn-text">НАСТРОЙКИ</span>
+            </button>
+
+            <button class="menu-btn" id="aboutBtn">
+                <span class="btn-icon">ℹ</span>
+                <span class="btn-text">ОБ ИГРЕ</span>
+            </button>
+        </div>
+
+        <!-- Окно авторизации -->
+        <div class="modal" id="loginModal">
+            <div class="modal-content">
+                <span class="close" id="closeLogin">&times;</span>
+                <h2>АВТОРИЗАЦИЯ</h2>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <label>Логин</label>
+                        <input type="text" id="username" placeholder="Введите логин" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Пароль</label>
+                        <input type="password" id="password" placeholder="Введите пароль" required>
+                    </div>
+                    <button type="submit" class="submit-btn">ВОЙТИ</button>
+                    <p class="register-link">Нет аккаунта? <a href="#" id="registerLink">Регистрация</a></p>
+                </form>
+                <div class="auth-status">
+                    <p>🔧 Система авторизации в разработке</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Окно настроек -->
+        <div class="modal" id="settingsModal">
+            <div class="modal-content">
+                <span class="close" id="closeSettings">&times;</span>
+                <h2>НАСТРОЙКИ</h2>
+
+                <div class="settings-group">
+                    <h3>🔊 ЗВУК</h3>
+
+                    <div class="setting-item">
+                        <label>Музыка</label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="musicToggle" checked>
+                            <label for="musicToggle" class="slider"></label>
+                        </div>
+                        <input type="range" id="musicVolume" min="0" max="100" value="70" class="volume-slider">
+                        <span id="musicValue" class="volume-value">70%</span>
+                    </div>
+
+                    <div class="setting-item">
+                        <label>Звуковые эффекты</label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="sfxToggle" checked>
+                            <label for="sfxToggle" class="slider"></label>
+                        </div>
+                        <input type="range" id="sfxVolume" min="0" max="100" value="80" class="volume-slider">
+                        <span id="sfxValue" class="volume-value">80%</span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>🎮 ГРАФИКА</h3>
+
+                    <div class="setting-item">
+                        <label>Качество</label>
+                        <select id="quality" class="quality-select">
+                            <option value="low">Низкое</option>
+                            <option value="medium" selected>Среднее</option>
+                            <option value="high">Высокое</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <label>Частицы</label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="particlesToggle" checked>
+                            <label for="particlesToggle" class="slider"></label>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="submit-btn" id="saveSettings">СОХРАНИТЬ</button>
+            </div>
+        </div>
+
+        <!-- Окно "Об игре" -->
+        <div class="modal" id="aboutModal">
+            <div class="modal-content">
+                <span class="close" id="closeAbout">&times;</span>
+                <h2>ОБ ИГРЕ</h2>
+                <div class="about-content">
+                    <p>🏢 <strong>SIGMAHILL</strong> - браузерная roguelike игра на выживание</p>
+                    <p>📖 Вы оказались в заброшенном отеле после апокалипсиса. Спускайтесь с этажа на этаж, сражайтесь с мутантами, собирайте ресурсы и выживайте.</p>
+                    <hr>
+                    <p><strong>Особенности:</strong></p>
+                    <ul>
+                        <li>🎲 Процедурная генерация уровней</li>
+                        <li>⚔️ Тактические пошаговые бои</li>
+                        <li>🔧 Система крафта</li>
+                        <li>💪 Прокачка персонажа</li>
+                        <li>🎯 Permadeath режим</li>
+                    </ul>
+                    <hr>
+                    <p class="version">Версия: 0.0.1 Pre-Alpha | 2025</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Индикатор загрузки -->
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>ЗАГРУЗКА...</p>
+        </div>
+
+    </div>
+
+    <!-- Футер -->
+    <footer class="footer">
+        <p>Made with 💀 | <span id="playerCount">Online: --</span></p>
+    </footer>
+
+    <script src="menu.js"></script>
+</body>
+</html>
