@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Phaser 3 — Player vs Enemy</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+    <style>
+        body{margin:0;background:#111;display:flex;justify-content:center;align-items:center;min-height:100vh;}
+        #ui{position:absolute;top:10px;left:50%;transform:translateX(-50%);font-family:monospace;color:#0f0}
+    </style>
+</head>
+<body>
+<div id="ui"></div>
+
+<script>
+class Fighter extends Phaser.Physics.Arcade.Sprite
+{
+    constructor(scene,x,y,key,scale=4)
+    {
+        super(scene,x,y,key);
+        scene.add.existing(this);
+        scene.physics.add.existing(this);
+
+        this.setScale(scale).setCollideWorldBounds(true);
+        this.hp = 3;
+        this.isAttacking = false;
+        this.lastHitTime = 0;
+    }
+
+    takeHit()
+    {
+        const now = this.scene.time.now;
+        if (now - this.lastHitTime < 300) return;   // небольшая неуязвимость
+        this.lastHitTime = now;
+        this.hp--;
+        if (this.hp <= 0)
+        {
+            this.play('die');
+            this.body.enable = false;
+        }
+    }
+
+    alive(){ return this.hp>0; }
+}
+
+/* ----------------------------- СЦЕНА ---------------------------------- */
+class GameScene extends Phaser.Scene
+{
+    preload()
+    {
+        this.load.spritesheet('brawler','https://labs.phaser.io/assets/animations/brawler48x48.png',
+                              {frameWidth:48,frameHeight:48});
+        this.load.image('grid','https://labs.phaser.io/assets/textures/grid-ps2.png');
+    }
+
+    create()
+    {
+        this.add.tileSprite(400,300,800,600,'grid');
+
+        // ---------- анимации ----------
+        const make = (key,frames,rep=-1)=>this.anims.create({key,frames:this.anims.generateFrameNumbers('brawler',{frames}),frameRate:8,repeat:rep});
+        make('walk',[0,1,2,3]);
+        make('idle',[5,6,7,8]);
+        make('kick',[10,11,12,13,10],0);
+        make('punch',[15,16,17,18,17,15],0);
+        make('die' ,[35,36,37],0);
+
+        // ---------- игрок ----------
+        this.player = new Fighter(this,200,400,'brawler');
+        this.player.play('idle');
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.keyA = this.input.keyboard.addKey('A');
+        this.keyS = this.input.keyboard.addKey('S');
+
+        // ---------- противник ----------
+        this.enemy = new Enemy(this,600,400,'brawler');
+        this.enemy.setTint(0xff0000); // красим
+        this.enemy.play('idle');
+
+        // ---------- текст UI ----------
+        this.ui = document.getElementById('ui');
+        this.updateUI();
+    }
+
+    update(time,delta)
+    {
+        this.handlePlayerControls();
+
+        if (this.enemy.alive())
+            this.enemy.updateAI(this.player);
+
+        this.checkHits();
+        this.updateUI();
+    }
+
+    /* ------------ управление игроком ------------ */
+    handlePlayerControls()
+    {
+        if (!this.player.alive()) return;
+
+        // если атакует, ждём конца анимации
+        if (this.player.isAttacking)
+        {
+            if (!this.player.anims.isPlaying){ this.player.isAttacking=false; }
+            this.player.setVelocityX(0);
+            return;
+        }
+
+        if (this.cursors.left.isDown)
+        {
+            this.player.setVelocityX(-200);
+            this.player.flipX=false;
+            this.player.play('walk',true);
+        }
+        else if (this.cursors.right.isDown)
+        {
+            this.player.setVelocityX(200);
+            this.player.flipX=true;
+            this.player.play('walk',true);
+        }
+        else
+        {
+            this.player.setVelocityX(0);
+            if (Phaser.Input.Keyboard.JustDown(this.keyA))
+            { this.player.play('kick'); this.player.isAttacking=true; }
+            else if (Phaser.Input.Keyboard.JustDown(this.keyS))
+            { this.player.play('punch'); this.player.isAttacking=true; }
+            else
+            { this.player.play('idle',true); }
+        }
+    }
+
+    /* ------------ столкновения удара ------------ */
+    checkHits()
+    {
+        // игрок бьёт врага
+        if (this.player.isAttacking && this.player.alive() && this.enemy.alive())
+        {
+            if (this.physics.overlap(this.player,this.enemy))
+            { this.enemy.takeHit(); }
+        }
+        // враг бьёт игрока
+        if (this.enemy.isAttacking && this.enemy.alive() && this.player.alive())
+        {
+            if (this.physics.overlap(this.enemy,this.player))
+            { this.player.takeHit(); }
+        }
+    }
+
+    updateUI()
+    {
+        this.ui.textContent = `Player HP: ${this.player.hp} — Enemy HP: ${this.enemy.hp}`;
+    }
+}
+
+/* --------------------------- КЛАСС Enemy -------------------------------- */
+class Enemy extends Fighter
+{
+    constructor(scene,x,y,key)
+    {
+        super(scene,x,y,key);
+        this.attackCooldown = 0;
+    }
+
+    updateAI(target)
+    {
+        if (!this.alive()) return;
+
+        const dist = Math.abs(target.x - this.x);
+
+        // если атакуем
+        if (this.isAttacking)
+        {
+            if (!this.anims.isPlaying) this.isAttacking=false;
+            this.setVelocityX(0);
+            return;
+        }
+
+        // достали ли до удара?
+        if (dist < 60 && this.scene.time.now > this.attackCooldown)
+        {
+            this.attackCooldown = this.scene.time.now + 800; // пауза между ударами
+            this.flipX = (target.x > this.x); // смотреть на цель
+            this.play('punch');               // можно сменить на 'kick'
+            this.isAttacking = true;
+            this.setVelocityX(0);
+            return;
+        }
+
+        // иначе идём к игроку
+        const dir = (target.x < this.x)? -1 : 1;
+        this.setVelocityX(dir*120);
+        this.flipX = (dir>0); // направо — flipX=true
+        this.play('walk',true);
+    }
+}
+
+/* --------------------------- Запуск игры -------------------------------- */
+new Phaser.Game({
+    type:Phaser.AUTO,
+    width:800,
+    height:600,
+    pixelArt:true,
+    physics:{ default:'arcade', arcade:{ gravity:{y:0}, debug:false } },
+    scene:GameScene
+});
+</script>
+</body>
+</html>
