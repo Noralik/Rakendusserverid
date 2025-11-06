@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Never Gonna Give You Up - Game Edition</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #rick-video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            display: none;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .rick-text {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 1001;
+            display: none;
+            animation: rainbow 2s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { color: red; }
+            17% { color: orange; }
+            33% { color: yellow; }
+            50% { color: green; }
+            67% { color: blue; }
+            83% { color: indigo; }
+            100% { color: violet; }
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 1002;
+            display: none;
+        }
+
+        .back-button:hover {
+            background: #ff3838;
+        }
+    </style>
+</head>
+<body>
+    <div id="rick-text" class="rick-text">🎵 NEVER GONNA GIVE YOU UP! 🎵</div>
+    <button id="back-btn" class="back-button" onclick="goBack()">← Вернуться</button>
+
+    <div id="game-container">
+        <iframe id="rick-video" width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=20zmqgULybHiEdWc&amp;controls=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
+        </iframe>
+    </div>
+
+    <script>
+        // Конфигурация Phaser игры с Риком
+        class RickRollScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'RickRollScene' });
+                this.rickImages = [];
+                this.startTime = 0;
+            }
+
+            preload() {
+                // Загружаем изображение Рика (используем placeholder)
+                this.load.image('rick', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
+            }
+
+            create() {
+                this.startTime = this.time.now;
+
+                // Создаем текст
+                const centerX = this.cameras.main.width / 2;
+                const centerY = this.cameras.main.height / 2;
+
+                // Главный текст
+                this.mainText = this.add.text(centerX, centerY - 100, 'ЗАГРУЗКА ИГРЫ...', {
+                    fontSize: '48px',
+                    color: '#ffffff',
+                    fontStyle: 'bold'
+                }).setOrigin(0.5);
+
+                // Прогресс бар
+                const barWidth = 400;
+                const barHeight = 30;
+
+                this.progressBar = this.add.graphics();
+                this.progressBar.fillStyle(0x222222, 0.8);
+                this.progressBar.fillRect(centerX - barWidth/2, centerY, barWidth, barHeight);
+
+                this.progressFill = this.add.graphics();
+
+                // Процент загрузки
+                this.percentText = this.add.text(centerX, centerY + 50, '0%', {
+                    fontSize: '24px',
+                    color: '#ffffff'
+                }).setOrigin(0.5);
+
+                // Танцующие Рики по краям
+                this.createDancingRicks();
+            }
+
+            createDancingRicks() {
+                const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff];
+
+                for (let i = 0; i < 10; i++) {
+                    const x = Phaser.Math.Between(50, this.cameras.main.width - 50);
+                    const y = Phaser.Math.Between(50, this.cameras.main.height - 50);
+
+                    const rick = this.add.rectangle(x, y, 30, 40, colors[i % colors.length]);
+                    rick.setAlpha(0);
+
+                    this.tweens.add({
+                        targets: rick,
+                        alpha: 1,
+                        scaleX: 1.5,
+                        scaleY: 1.5,
+                        angle: 360,
+                        duration: 2000,
+                        delay: i * 200,
+                        repeat: -1,
+                        yoyo: true
+                    });
+
+                    this.rickImages.push(rick);
+                }
+            }
+
+            update() {
+                const elapsed = this.time.now - this.startTime;
+                const progress = Math.min(elapsed / 3000, 1);
+
+                // Обновляем прогресс бар
+                this.progressFill.clear();
+                this.progressFill.fillStyle(0x00ff00, 1);
+                this.progressFill.fillRect(
+                    this.cameras.main.width/2 - 200,
+                    this.cameras.main.height/2,
+                    400 * progress,
+                    30
+                );
+
+                // Обновляем процент
+                this.percentText.setText(Math.floor(progress * 100) + '%');
+
+                // После "загрузки" показываем рикролл
+                if (progress >= 1 && !this.rickrolled) {
+                    this.rickrolled = true;
+                    this.time.delayedCall(500, () => {
+                        this.showRickRoll();
+                    });
+                }
+            }
+
+            showRickRoll() {
+                // Очищаем сцену
+                this.children.removeAll();
+
+                // Показываем видео и элементы
+                document.getElementById('rick-video').style.display = 'block';
+                document.getElementById('rick-text').style.display = 'block';
+                document.getElementById('back-btn').style.display = 'block';
+
+                // Добавляем эффекты
+                this.cameras.main.shake(500, 0.02);
+                this.cameras.main.flash(500, 255, 255, 255);
+
+                // Создаем праздничные частицы
+                this.createConfetti();
+            }
+
+            createConfetti() {
+                const particles = this.add.particles(0, 0, 'rick', {
+                    x: { min: 0, max: this.cameras.main.width },
+                    y: -50,
+                    speed: { min: 100, max: 200 },
+                    scale: { start: 1, end: 0 },
+                    rotate: { min: 0, max: 360 },
+                    lifespan: 3000,
+                    frequency: 50,
+                    tint: [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff]
+                });
+            }
+        }
+
+        // Конфигурация игры
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'game-container',
+            transparent: true,
+            scene: RickRollScene
+        };
+
+        // Запуск игры
+        const game = new Phaser.Game(config);
+
+        // Функция возврата
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        // Дополнительные эффекты при загрузке страницы
+        window.addEventListener('load', () => {
+            console.log('🎵 Never gonna give you up');
+            console.log('🎵 Never gonna let you down');
+            console.log('🎵 Never gonna run around and desert you');
+
+            // Меняем заголовок вкладки
+            let titleIndex = 0;
+            const titles = [
+                '🎵 Never Gonna Give You Up',
+                '🎶 Never Gonna Let You Down',
+                '🎵 Never Gonna Run Around',
+                '🎶 And Desert You'
+            ];
+
+            setInterval(() => {
+                document.title = titles[titleIndex % titles.length];
+                titleIndex++;
+            }, 2000);
+        });
+
+        // Блокируем попытку закрыть страницу (шутка)
+        let attempts = 0;
+        window.addEventListener('beforeunload', (e) => {
+            if (attempts < 1) {
+                attempts++;
+                e.preventDefault();
+                e.returnValue = 'Рик Эстли не отпустит тебя так просто! 🎵';
+                return e.returnValue;
+            }
+        });
+    </script>
+</body>
+</html>
