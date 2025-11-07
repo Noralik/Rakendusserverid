@@ -39,3 +39,4 @@ Projekti eesmärk oli luua täielikult toimiv infrastruktuur, mis sisaldab nii v
 
 ## 🧠 Projekti struktuur
 
+<img width="615" height="438" alt="image" src="https://github.com/user-attachments/assets/153455f8-a21a-424a-8cac-e45908335c63" />
